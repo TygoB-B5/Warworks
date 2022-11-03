@@ -16,6 +16,7 @@ void APlayableGrid::BeginPlay()
 {
 	Super::BeginPlay();
 	InvalidatePositionData();
+	InvalidateMovableData();
 	InvalidateColorMeshData();
 }
 
@@ -24,7 +25,7 @@ void APlayableGrid::InvalidatePositionData()
 
 	// Initilize elements.
 	uint32_t size = GridSize.X * GridSize.Y;
-	m_Positions.Init(FVector2D(), size);
+	m_Positions.Init(FVector(), size);
 
 	// Fill arrays.
 	for (size_t i = 0; i < size; i++)
@@ -32,7 +33,9 @@ void APlayableGrid::InvalidatePositionData()
 		uint32_t x = i % GridSize.X;
 		uint32_t y = i / GridSize.Y;
 
-		m_Positions[i] = FVector2D(x, y) * PositionOffset;
+		FVector2D pos = FVector2D(x, y) * PositionOffset;
+
+		m_Positions[i] = GetActorLocation() + FVector(pos.X, pos.Y, 0);
 	}
 }
 
@@ -45,9 +48,14 @@ void APlayableGrid::InvalidateColorMeshData()
 		if (Tile)
 		{
 			m_Tiles[i] = GetWorld()->SpawnActor<ATile>(Tile);
-			Cast<AActor>(m_Tiles[i])->AddActorLocalOffset(FVector(m_Positions[i], GridSize.Z));
+			Cast<AActor>(m_Tiles[i])->AddActorLocalOffset(m_Positions[i]);
 		}
 	}
+}
+
+void APlayableGrid::InvalidateMovableData()
+{
+	m_Movables.Init(nullptr, GridSize.X * GridSize.Y);
 }
 
 void APlayableGrid::DrawDebugHelpers()
@@ -55,17 +63,19 @@ void APlayableGrid::DrawDebugHelpers()
 	// Draw debug spheres.
 	for (auto& pos : m_Positions)
 	{
-		DrawDebugSphere(GetWorld(), FVector(pos, 0), 10, 8, FColor::Red, false, 0.0f);
+		DrawDebugSphere(GetWorld(), pos, 10, 8, FColor::Red, false, 0.0f);
 	}
 }
 
 bool APlayableGrid::EditorValuesChanged()
 {
 	bool changed = GridSize != m_OldGridSize ||
-		PositionOffset != m_OldPositionOffset;
+		PositionOffset != m_OldPositionOffset ||
+		m_OldActorLocation != GetActorLocation();
 
 	m_OldPositionOffset = PositionOffset;
 	m_OldGridSize = GridSize;
+	m_OldActorLocation = GetActorLocation();
 
 	return changed;
 }
@@ -77,8 +87,10 @@ void APlayableGrid::Tick(float DeltaTime)
 	// Update only in editor (Optimization)
 	if (GetWorld()->WorldType == EWorldType::Editor)
 	{
-		if(EditorValuesChanged())
+		if (EditorValuesChanged())
+		{
 			InvalidatePositionData();
+		}
 
 		DrawDebugHelpers();
 	}
@@ -86,10 +98,54 @@ void APlayableGrid::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void APlayableGrid::GetPositionAtCoordinate(const int x, const int y, FVector2D& out)
+void APlayableGrid::GetPositionFromCoordinate(const int x, const int y, FVector& out)
 {
 	uint32 index = x + y * GridSize.X;
+
+	if (index > (uint32)m_Positions.Num())
+	{
+		out = FVector();
+		return;
+	}
+
 	out = m_Positions[index];
+}
+
+void APlayableGrid::GetGridMovableFromCoordinate(const int x, const int y, TScriptInterface<IGridMovable>& out)
+{
+	uint32 index = x + y * GridSize.X;
+
+	if (index > (uint32)m_Positions.Num())
+	{
+		return;
+	}
+
+	out = m_Movables[index]->_getUObject();
+}
+
+void APlayableGrid::RequestMovementToCoordinateWithCoordinate(const int x, const int y, const int x2, const int y2)
+{
+	FVector pos;
+	GetPositionFromCoordinate(x, y, pos);
+
+	TScriptInterface<IGridMovable> movable = nullptr;
+	GetGridMovableFromCoordinate(x, y, movable);
+
+	if (movable.GetObject())
+	{
+		IGridMovable::Execute_OnRequestMoveTowards(movable.GetObject(), pos);
+	}
+}
+
+void APlayableGrid::RequestMovementToCoordinateWithGridMovable(const int x, const int y, const TScriptInterface<IGridMovable>& movable)
+{
+	FVector pos = FVector();
+	GetPositionFromCoordinate(x, y, pos);
+
+	if (movable.GetObject())
+	{
+		IGridMovable::Execute_OnRequestMoveTowards(movable.GetObject(), pos);
+	}
 }
 
 void APlayableGrid::SetTileMaterialIndex(const int x, const int y, const int materialIndex)

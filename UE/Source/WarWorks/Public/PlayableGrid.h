@@ -8,6 +8,8 @@
 #include "UObject/UnrealType.h"
 #include "Components/StaticMeshComponent.h"
 #include "Tile.h"
+#include "GridMovable.h"
+#include "UObject/ScriptInterface.h"
 #include "PlayableGrid.generated.h"
 
 UCLASS()
@@ -24,6 +26,7 @@ protected:
 private:
 	void InvalidatePositionData();
 	void InvalidateColorMeshData();
+	void InvalidateMovableData();
 
 	void DrawDebugHelpers();
 	bool EditorValuesChanged();
@@ -33,7 +36,16 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable, Category="Grid")
-		void GetPositionAtCoordinate(const int x, const int y, FVector2D& out);
+		void GetPositionFromCoordinate(const int x, const int y, FVector& out);
+
+	UFUNCTION(BlueprintCallable, Category = "Grid")
+		void GetGridMovableFromCoordinate(const int x, const int y, TScriptInterface<IGridMovable>& out);
+
+	UFUNCTION(BlueprintCallable, Category = "Grid")
+		void RequestMovementToCoordinateWithCoordinate(const int x, const int y, const int x2, const int y2);
+
+	UFUNCTION(BlueprintCallable, Category = "Grid")
+		void RequestMovementToCoordinateWithGridMovable(const int x, const int y, const TScriptInterface<IGridMovable>& movable);
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")
 		void SetTileMaterialIndex(const int x, const int y, const int materialIndex);
@@ -49,9 +61,11 @@ public:
 		TSubclassOf<class ATile> Tile;
 
 private:
-	TArray<FVector2D> m_Positions;
+	TArray<FVector> m_Positions;
 	TArray<ATile*> m_Tiles;
+	TArray<IGridMovable*> m_Movables;
 
+	FVector m_OldActorLocation;
 	FIntVector m_OldGridSize;
 	float m_OldPositionOffset;
 };

@@ -7,7 +7,7 @@
 #include "GridMovable.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI)
+UINTERFACE(MinimalAPI, Blueprintable)
 class UGridMovable : public UInterface
 {
 	GENERATED_BODY()
@@ -24,5 +24,5 @@ class WARWORKS_API IGridMovable
 public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category="Grid")
-		void OnRequestMoveTowards(const FVector position);
+		void OnRequestMoveTowards(const FVector& position);
 };
