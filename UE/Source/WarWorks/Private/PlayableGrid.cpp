@@ -4,17 +4,15 @@
 #include "PlayableGrid.h"
 #include "DrawDebugHelpers.h"
 
-// Sets default values
 APlayableGrid::APlayableGrid()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-// Called when the game starts or when spawned
 void APlayableGrid::BeginPlay()
 {
 	Super::BeginPlay();
+
 	InvalidatePositionData();
 	InvalidateMovableData();
 	InvalidateColorMeshData();
@@ -27,7 +25,7 @@ void APlayableGrid::InvalidatePositionData()
 	uint32_t size = GridSize.X * GridSize.Y;
 	m_Positions.Init(FVector(), size);
 
-	// Fill arrays.
+	// Fill position array.
 	for (size_t i = 0; i < size; i++)
 	{
 		uint32_t x = i % GridSize.X;
@@ -43,6 +41,7 @@ void APlayableGrid::InvalidateColorMeshData()
 {
 	m_Tiles.Init(nullptr, m_Positions.Num());
 
+	// Fill Tile data
 	for (size_t i = 0; i < m_Positions.Num(); i++)
 	{
 		if (Tile)
@@ -80,7 +79,6 @@ bool APlayableGrid::EditorValuesChanged()
 	return changed;
 }
 
-// Called every frame
 void APlayableGrid::Tick(float DeltaTime)
 {
 
@@ -102,6 +100,7 @@ void APlayableGrid::GetPositionFromCoordinate(const int x, const int y, FVector&
 {
 	uint32 index = x + y * GridSize.X;
 
+	// Index check for safety.
 	if (index > (uint32)m_Positions.Num())
 	{
 		out = FVector();
@@ -115,6 +114,7 @@ void APlayableGrid::GetGridMovableFromCoordinate(const int x, const int y, TScri
 {
 	uint32 index = x + y * GridSize.X;
 
+	// Index check for safety.
 	if (index > (uint32)m_Positions.Num())
 	{
 		return;
