@@ -22,6 +22,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Destroyed() override;
 
 private:
 	void InvalidatePositionData();
@@ -35,7 +36,7 @@ public:
 	virtual bool ShouldTickIfViewportsOnly() const override { return true; }
 	virtual void Tick(float DeltaTime) override;
 
-	UFUNCTION(BlueprintCallable, Category="Grid")
+	UFUNCTION(BlueprintCallable, Category= "Grid")
 		void GetPositionFromCoordinate(const int x, const int y, FVector& out);
 
 	UFUNCTION(BlueprintCallable, Category = "Grid")

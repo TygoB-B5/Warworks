@@ -7,6 +7,8 @@
 APlayableGrid::APlayableGrid()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	DrawDebugHelpers();
 }
 
 void APlayableGrid::BeginPlay()
@@ -16,6 +18,11 @@ void APlayableGrid::BeginPlay()
 	InvalidatePositionData();
 	InvalidateMovableData();
 	InvalidateColorMeshData();
+}
+
+void APlayableGrid::Destroyed()
+{
+	FlushPersistentDebugLines(GetWorld());
 }
 
 void APlayableGrid::InvalidatePositionData()
@@ -59,10 +66,12 @@ void APlayableGrid::InvalidateMovableData()
 
 void APlayableGrid::DrawDebugHelpers()
 {
+	FlushPersistentDebugLines(GetWorld());
+
 	// Draw debug spheres.
 	for (auto& pos : m_Positions)
 	{
-		DrawDebugSphere(GetWorld(), pos, 10, 8, FColor::Red, false, 0.0f);
+		DrawDebugSphere(GetWorld(), pos, 10, 2, FColor::Red, false, INFINITY);
 	}
 }
 
@@ -88,9 +97,9 @@ void APlayableGrid::Tick(float DeltaTime)
 		if (EditorValuesChanged())
 		{
 			InvalidatePositionData();
+			DrawDebugHelpers();
 		}
 
-		DrawDebugHelpers();
 	}
 
 	Super::Tick(DeltaTime);
