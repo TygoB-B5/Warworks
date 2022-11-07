@@ -99,7 +99,6 @@ void APlayableGrid::Tick(float DeltaTime)
 			InvalidatePositionData();
 			DrawDebugHelpers();
 		}
-
 	}
 
 	Super::Tick(DeltaTime);

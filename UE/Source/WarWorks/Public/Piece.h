@@ -44,8 +44,17 @@ public:
 		ElementType Type;
 
 	UPROPERTY(EditAnywhere, Category = "Piece")
+		uint32 PatternSize;
+
+	UPROPERTY(EditAnywhere, Category = "Piece")
 		TArray<bool> AttackPattern;
 
 	UPROPERTY(EditAnywhere, Category = "Piece")
 		TArray<bool> WalkPattern;
+
+	UPROPERTY(EditAnywhere, Category = "Piece")
+		uint32 Health;
+
+	UPROPERTY(EditAnywhere, Category = "Piece")
+		uint32 Damage;
 };

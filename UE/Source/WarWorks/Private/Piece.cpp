@@ -8,9 +8,11 @@ APiece::APiece()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	uint32 size = FMath::Pow(PatternSize, 2);
+
 	// Initialize pattern arrays to required length.
-	AttackPattern.Init(false, 5 * 5);
-	WalkPattern.Init(false, 5 * 5);
+	AttackPattern.Init(false, size);
+	WalkPattern.Init(false, size);
 }
 
 void APiece::BeginPlay()
@@ -28,6 +30,5 @@ void APiece::Tick(float DeltaTime)
 void APiece::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 
