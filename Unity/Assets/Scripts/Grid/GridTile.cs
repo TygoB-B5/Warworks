@@ -5,9 +5,13 @@ namespace Grid
 
     public class GridTile : MonoBehaviour
     {
-        public void SetTypeType(int type)
+        /// <summary>
+        /// Set the tile color with index.
+        /// </summary>
+        /// <param name="type"></param>
+        public void SetTileType(int type)
         {
-            Material material = GetComponent<MeshRenderer>().sharedMaterial;
+            Material material = GetComponent<MeshRenderer>().material;
 
             // Temporary.
             switch (type)

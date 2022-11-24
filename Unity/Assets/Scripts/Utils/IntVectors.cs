@@ -8,6 +8,11 @@ public struct IntVector2
         this.y = y;
     }
 
+    public override string ToString()
+    {
+        return $"{x}, {y}";
+    }
+
     public int x;
     public int y;
 }
@@ -20,6 +25,11 @@ public struct IntVector3
         this.x = x;
         this.y = y;
         this.z = z;
+    }
+
+    public override string ToString()
+    {
+        return $"{x}, {y}, {z}";
     }
 
     public int x;

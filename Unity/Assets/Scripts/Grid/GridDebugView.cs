@@ -16,18 +16,46 @@ namespace Grid
         {
             if (!Application.isPlaying)
             {
-
-                // Get grid instance.
-                MovementGrid grid = GetComponent<MovementGrid>();
-
-                if (grid.TilePrefab)
-                {
-                    ClearChildren();
-                    grid.InstantiateTiles();
-                }
+                UpdateDebugGrid();
             }
         }
 
+        private void OnDisable()
+        {
+            if (!Application.isPlaying)
+            {
+                ClearChildren();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (!Application.isPlaying)
+            {
+                ClearChildren();
+            }
+        }
+
+        /// <summary>
+        /// Updates the debug tile instances and resets them.
+        /// </summary>
+        private void UpdateDebugGrid()
+        {
+            // Get grid instance.
+            MovementGrid grid = GetComponent<MovementGrid>();
+
+            // Instantiate Tile prefabs for debugging if not null.
+            if (grid.TilePrefab)
+            {
+                ClearChildren();
+                grid.InstantiateTiles();
+            }
+        }
+
+
+        /// <summary>
+        /// Deletes all child objects inside of the grid objct.
+        /// </summary>
         private void ClearChildren()
         {
             // Destroy all child objects of this transform.

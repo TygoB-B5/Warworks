@@ -5,22 +5,6 @@ namespace Grid
 {
 
     /// <summary>
-    /// GridFileTypeList class used to change areas of tiles.
-    /// </summary>
-    public class GridTileTypeList
-    {
-        [Header("Center coordinate of the color map.")]
-        public IntVector2 Center;
-
-        [Header("The size of the tile type map.")]
-        public int Size;
-
-        [Header("The data of the tile map.")]
-        public List<int> TileTypesList;
-    }
-
-
-    /// <summary>
     /// IGridMovable interface used for objects that should be movable on the grid.
     /// </summary>
     public interface IGridMovable
@@ -32,10 +16,19 @@ namespace Grid
         public void OnRequestMoveToPosition(Vector3 position);
 
         /// <summary>
-        /// Return the Tile type list. Tile type lists are used to specify which tiles should change upon doing an action.
+        /// Called when object is detached from the grid.
         /// </summary>
-        /// <returns></returns>
-        public GridTileTypeList GetGridTileTypeList();
+        public void OnRemove();
+
+        /// <summary>
+        /// Called when the object is attached to the grid.
+        /// </summary>
+        public void OnSpawn();
+
+        /// <summary>
+        /// The curent coordinate of the playpiece.
+        /// </summary>
+        public IntVector2 CurrentCoordinate { get; set; }
     }
 
     public class MovementGrid : MonoBehaviour
@@ -43,13 +36,6 @@ namespace Grid
         private void Start()
         {
             InstantiateTiles();
-            InstantiateGridMovables();
-        }
-
-        public void InstantiateGridMovables()
-        {
-            // TODO
-            m_Movables = new IGridMovable[GridSize.x * GridSize.y];
         }
 
         public void InstantiateTiles()
@@ -75,13 +61,8 @@ namespace Grid
         /// <returns></returns>
         public Vector3 GetPositionWithCoordinate(IntVector2 coordinate)
         {
-
-            // Assert if coordinate is higher than the maximum grid size.
-            if (coordinate.x >= GridSize.x || coordinate.y > GridSize.y)
-            {
-                Debug.LogError("Index is higher than grid size.");
+            if (!IsValidCoordinate(coordinate))
                 return Vector3.zero;
-            }
 
             return transform.position + new Vector3(coordinate.x * GridDistance, 0, coordinate.y * GridDistance);
         }
@@ -93,13 +74,8 @@ namespace Grid
         /// <returns></returns>
         public Vector3 GetPositionWithIndex(int index)
         {
-
-            // Assert if coordinate is higher than the maximum grid size.
-            if (index >= GridSize.x * GridSize.y)
-            {
-                Debug.LogError("Index is higher than grid size.");
+            if (!IsValidIndex(index))
                 return Vector3.zero;
-            }
 
             return GetPositionWithCoordinate(new IntVector2(index % GridSize.x, index / GridSize.x));
         }
@@ -111,13 +87,8 @@ namespace Grid
         /// <returns></returns>
         public IGridMovable GetGridMovableWithCoordinate(IntVector2 coordinate)
         {
-
-            // Assert if coordinate is higher than the maximum grid size.
-            if (coordinate.x >= GridSize.x || coordinate.y > GridSize.y)
-            {
-                Debug.LogError("Index is higher than grid size.");
+            if (!IsValidCoordinate(coordinate))
                 return null;
-            }
 
             return m_Movables[coordinate.x * GridSize.x + coordinate.y];
         }
@@ -127,17 +98,33 @@ namespace Grid
         /// </summary>
         /// <param name="coordinate"></param>
         /// <param name="movable"></param>
-        public void SetGridMovablePositionWithCoordinate(IntVector2 coordinate, IGridMovable movable)
+        public void AddGridMovableToGridWithCoordinate(IntVector2 coordinate, IGridMovable movable)
         {
-
-            // Assert if coordinate is higher than the maximum grid size.
-            if (coordinate.x >= GridSize.x || coordinate.y > GridSize.y)
-            {
-                Debug.LogError("Index is higher than grid size.");
+            if (!IsValidCoordinate(coordinate))
                 return;
-            }
+
+            TryInitializingGridMovableArray();
+
+            movable.OnSpawn();
+            movable.CurrentCoordinate = coordinate;
 
             m_Movables[coordinate.x * GridSize.x + coordinate.y] = movable;
+        }
+
+        /// <summary>
+        /// Remove IGridMovable from coordinate on the grid.
+        /// </summary>
+        /// <param name="coordinate"></param>
+        /// <param name="movable"></param>
+        public void RemoveGridMovableFromGridWithCoordinate(IntVector2 coordinate)
+        {
+            if (!IsValidCoordinate(coordinate))
+                return;
+
+            TryInitializingGridMovableArray();
+
+            m_Movables[coordinate.x * GridSize.x + coordinate.y].OnRemove();
+            m_Movables[coordinate.x * GridSize.x + coordinate.y] = null;
         }
 
         /// <summary>
@@ -145,11 +132,26 @@ namespace Grid
         /// </summary>
         /// <param name="movable"></param>
         /// <param name="coordinate"></param>
-        public void MoveGridMovableToCoordinate(IGridMovable movable, IntVector2 coordinate)
+        public bool SetGridMovablePositionWithCoordinate(IGridMovable movable, IntVector2 coordinate)
         {
-            movable.OnRequestMoveToPosition(GetPositionWithCoordinate(coordinate));
-        }
+            if (!IsValidCoordinate(coordinate))
+                return false;
 
+
+            // Return false if coordinate is already asigned.
+            if (m_Movables[coordinate.x * GridSize.x + coordinate.y] != null)
+            {
+                return false;
+            }
+            
+            m_Movables[coordinate.x * GridSize.x + coordinate.y] = movable;
+
+            movable.CurrentCoordinate = coordinate;
+            movable.OnRequestMoveToPosition(GetPositionWithCoordinate(coordinate));
+
+            return true;
+        }
+            
         /// <summary>
         /// Get tile reference from grid coordinate.
         /// </summary>
@@ -157,11 +159,8 @@ namespace Grid
         /// <returns></returns>
         public GridTile GetTileWithCoordinate(IntVector2 coordinate)
         {
-            if (coordinate.x >= GridSize.x || coordinate.y > GridSize.y)
-            {
-                Debug.LogError("Index is higher than grid size.");
+            if (!IsValidCoordinate(coordinate))
                 return null;
-            }
 
             return m_Tiles[coordinate.x * GridSize.x + coordinate.y];
         }
@@ -173,15 +172,53 @@ namespace Grid
         /// <param name="tileType"></param>
         public void SetTileTypeWithCoordinate(IntVector2 coordinate, int tileType)
         {
+            if (!IsValidCoordinate(coordinate))
+                return;
 
-            // Assert if coordinate is higher than the maximum grid size.
+            GetTileWithCoordinate(coordinate).SetTileType(tileType);
+        }
+
+        /// <summary>
+        /// Returns if the specified coordinate fits inside of the GridSize.
+        /// </summary>
+        /// <param name="coordinate"></param>
+        /// <returns></returns>
+        public bool IsValidCoordinate(IntVector2 coordinate)
+        {
             if (coordinate.x >= GridSize.x || coordinate.y > GridSize.y)
             {
-                Debug.LogError("Index is higher than grid size.");
-                return;
+                Debug.LogError($"Coordinate is higher than grid size. Coordinate: {coordinate}", this);
+                return false;
             }
 
-            GetTileWithCoordinate(coordinate).SetTypeType(tileType);
+            return true;
+        }
+
+        /// <summary>
+        /// Returns if the index fits inside of the Grid.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public bool IsValidIndex(int index)
+        {
+            if (GridSize.x * GridSize.y < index)
+            {
+                Debug.LogError($"Index is higher than grid size. Index: {index}", this);
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Create IGridMovable array with GridSize if it does not already exist.
+        /// </summary>
+        public void TryInitializingGridMovableArray()
+        {
+            if (m_Movables == null || m_Movables.Length == 0)
+            {
+                m_Movables = new IGridMovable[GridSize.x * GridSize.y];
+            }
         }
 
         // Public variables.
