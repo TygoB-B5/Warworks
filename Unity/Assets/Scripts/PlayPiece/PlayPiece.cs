@@ -30,22 +30,37 @@ namespace Piece
 
         public void OnRequestMoveToPosition(Vector3 position)
         {
+            Debug.Log("pos changed");
             transform.position = position;
-        }
-
-        public TilePattern GetGridTileTypeList()
-        {
-            return AttackPattern;
         }
 
         public void OnRemove()
         {
+            // Delete this playpiece.
             Destroy(gameObject);
         }
 
-        public void OnSpawn()
+        public void OnAttach()
         {
-            // TODO
+
+        }
+
+        // TEMPT
+        private void Update()
+        {
+            if(Input.GetKey(KeyCode.A))
+            {
+                Grid?.ResetTileTypes();
+                Grid?.AddTilePatternToTiles(AttackPattern, CurrentCoordinate);
+                return;
+            }
+
+            if (Input.GetKey(KeyCode.B))
+            {
+                Grid?.ResetTileTypes();
+                Grid?.AddTilePatternToTiles(MovementPattern, CurrentCoordinate);
+                return;
+            }
         }
 
         [Header("The element the playpiece will have.")]
@@ -55,6 +70,7 @@ namespace Piece
         public TilePattern MovementPattern;
 
         public IntVector2 CurrentCoordinate { get; set; }
+        public MovementGrid Grid { get; set; }
     }
 
 }
