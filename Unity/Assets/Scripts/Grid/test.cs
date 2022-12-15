@@ -9,6 +9,7 @@ public class test : MonoBehaviour
     void Start()
     {
         FindObjectOfType<MovementGrid>().AddGridMovableToGridWithCoordinate(new IntVector2(5, 5), movable);
+        movable.SetOwnerIndex(0);
     }
 
     private void Update()

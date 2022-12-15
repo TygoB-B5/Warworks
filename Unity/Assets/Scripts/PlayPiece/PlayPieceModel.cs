@@ -8,15 +8,37 @@ namespace Piece
     [RequireComponent(typeof(PlayPiece))]
     public class PlayPieceModel : MonoBehaviour
     {
-        private void Start()
+
+        /// <summary>
+        /// Attach event.
+        /// </summary>
+        private void OnEnable()
         {
-            LoadModel();
+            PlayPiece piece = GetComponent<PlayPiece>();
+
+            if (piece)
+            {
+                piece.OnOwnerIndexChanged += LoadModel;
+            }
+        }
+
+        /// <summary>
+        /// Detach event.
+        /// </summary>
+        private void OnDisable()
+        {
+            PlayPiece piece = GetComponent<PlayPiece>();
+
+            if (piece)
+            {
+                piece.OnOwnerIndexChanged -= LoadModel;
+            }
         }
 
         /// <summary>
         /// Load playpiece model based on player owner index.
         /// </summary>
-        public void LoadModel()
+        public void LoadModel(int ownerIndex)
         {
             // Delete model if exists.
             if(m_CurrentModel)
@@ -25,14 +47,13 @@ namespace Piece
             }
 
             // Log error if index is out of range.
-            if (ModelsForPlayerIndex.Length < GetComponent<PlayPiece>().OwnerPlayerIndex)
+            if (ModelsForPlayerIndex.Length < ownerIndex)
             {
-                Debug.LogError($"Models can not be loaded for Player Owner Index. Index: {GetComponent<PlayPiece>().OwnerPlayerIndex}", this);
+                Debug.LogError($"Models can not be loaded for Player Owner Index. Index: {ownerIndex}", this);
             }
 
             // Get model gameObjectl
-            GameObject model = ModelsForPlayerIndex[GetComponent<PlayPiece>().OwnerPlayerIndex];
-
+            GameObject model = ModelsForPlayerIndex[ownerIndex];
             // Spawn model gameObject.
             m_CurrentModel = Instantiate(model, transform);
         }
