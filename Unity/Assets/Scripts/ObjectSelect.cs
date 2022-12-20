@@ -1,39 +1,34 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class ObjectSelect : MonoBehaviour
 {
-    private GameObject selectedObject;
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-    
-            
+    private static GameObject selectedObject;
+    private static GameObject hoveredObject;
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
-        {
-              
-         CheckObject();
-        }
-
+        CheckObject();
     }
 
     void CheckObject()
     {
-         int layer_maskt = LayerMask.GetMask("Pion");
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
-        if (Physics.Raycast(ray, out hit, 1000,layer_maskt))
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity))
         {
-            Debug.Log(hit.transform.name);
-            selectedObject = hit.transform.gameObject;
-            Debug.Log("hit");
+            if (Input.GetMouseButtonDown(0))
+            {
+                selectedObject = hit.transform.gameObject;
+            }
+
+            hoveredObject = hit.transform.gameObject;
+        }
+        else
+        {
+            hoveredObject = null;
         }
     }
+
+    public static GameObject GetSelectedObject() => selectedObject;
+    public static GameObject GetHoveredObject() => hoveredObject;
 }

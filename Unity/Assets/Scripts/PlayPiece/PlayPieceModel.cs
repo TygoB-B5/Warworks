@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 namespace Piece
 {
 
@@ -54,8 +55,15 @@ namespace Piece
 
             // Get model gameObjectl
             GameObject model = ModelsForPlayerIndex[ownerIndex];
+
             // Spawn model gameObject.
             m_CurrentModel = Instantiate(model, transform);
+
+            // Add collider to model.
+            m_CurrentModel.AddComponent<BoxCollider>();
+
+            // Set layermask to pawn layer.
+            m_CurrentModel.layer = 3;
         }
 
         [Header("Models used per player index.")]

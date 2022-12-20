@@ -48,21 +48,13 @@ namespace Piece
 
         }
 
-        // TEMP
         private void Update()
         {
-            if (Input.GetKey(KeyCode.A))
-            {
-                m_PlayPiece.Grid?.ResetTileTypes();
-                m_PlayPiece.Grid?.AddTilePatternToTiles(AttackPattern, m_PlayPiece.CurrentCoordinate);
-                return;
-            }
+            m_PlayPiece.Grid?.ResetTileTypes();
 
-            if (Input.GetKey(KeyCode.B))
+            if(ObjectSelect.GetHoveredObject() == transform.GetChild(0).gameObject)
             {
-                m_PlayPiece.Grid?.ResetTileTypes();
                 m_PlayPiece.Grid?.AddTilePatternToTiles(MovementPattern, m_PlayPiece.CurrentCoordinate);
-                return;
             }
         }
 
