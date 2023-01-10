@@ -2,13 +2,20 @@ using UnityEngine;
 
 public class ObjectSelect : MonoBehaviour
 {
+    [SerializeField]
     private static GameObject selectedObject;
-    private static GameObject hoveredObject;
+    private float holdTime = 0;
 
     private void Update()
     {
         CheckObject();
-    }
+        if (Input.GetKey(KeyCode.Mouse0))
+        {
+            holdTime += 1 * Time.deltaTime;
+                
+
+        }
+    } 
 
     void CheckObject()
     {
@@ -16,19 +23,27 @@ public class ObjectSelect : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, Mathf.Infinity))
         {
-            if (Input.GetMouseButtonDown(0))
+           
+
+            if (Input.GetMouseButtonUp(0))
             {
-                selectedObject = hit.transform.gameObject;
+                
+                if (holdTime < 0.5f)
+                {
+                    selectedObject = hit.transform.gameObject;
+                    
+                }
+                
+                    holdTime = 0;
+                
+
             }
 
-            hoveredObject = hit.transform.gameObject;
+
         }
-        else
-        {
-            hoveredObject = null;
-        }
+        
     }
 
     public static GameObject GetSelectedObject() => selectedObject;
-    public static GameObject GetHoveredObject() => hoveredObject;
+    
 }

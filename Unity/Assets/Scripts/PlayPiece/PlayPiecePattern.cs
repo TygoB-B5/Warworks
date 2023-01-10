@@ -52,7 +52,7 @@ namespace Piece
         {
             m_PlayPiece.Grid?.ResetTileTypes();
 
-            if(ObjectSelect.GetHoveredObject() == transform.GetChild(0).gameObject)
+            if(ObjectSelect.GetSelectedObject() == transform.GetChild(0).gameObject)
             {
                 m_PlayPiece.Grid?.AddTilePatternToTiles(MovementPattern, m_PlayPiece.CurrentCoordinate);
             }
