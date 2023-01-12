@@ -9,11 +9,9 @@ public class ObjectSelect : MonoBehaviour
     private void Update()
     {
         CheckObject();
-        if (Input.GetKey(KeyCode.Mouse0))
+        if (Input.GetMouseButton(0))
         {
             holdTime += 1 * Time.deltaTime;
-                
-
         }
     } 
 
@@ -23,27 +21,17 @@ public class ObjectSelect : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(ray, out hit, Mathf.Infinity))
         {
-           
-
             if (Input.GetMouseButtonUp(0))
             {
-                
                 if (holdTime < 0.5f)
                 {
-                    selectedObject = hit.transform.gameObject;
-                    
+                    if (hit.transform.TryGetComponent(out ITracable trb))
+                    {
+                        trb.OnSelect();
+                    }
                 }
-                
                     holdTime = 0;
-                
-
             }
-
-
         }
-        
     }
-
-    public static GameObject GetSelectedObject() => selectedObject;
-    
 }

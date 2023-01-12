@@ -13,6 +13,17 @@ public struct IntVector2
         return $"{x}, {y}";
     }
 
+    public static bool operator == (IntVector2 first, IntVector2 second)
+    {
+        return first.x == second.x && first.y == second.y;
+    }
+
+    public static bool operator !=(IntVector2 first, IntVector2 second)
+    {
+        return first.x != second.x || first.y != second.y;
+    }
+
+
     public int x;
     public int y;
 }

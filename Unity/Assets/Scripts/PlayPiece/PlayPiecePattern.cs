@@ -1,3 +1,4 @@
+using Gameplay;
 using Piece;
 using System.Collections;
 using System.Collections.Generic;
@@ -38,31 +39,61 @@ namespace Piece
     [RequireComponent(typeof(PlayPiece))]
     public class PlayPiecePattern : MonoBehaviour
     {
-        private void Start()
+        private void OnEnable()
         {
-            m_PlayPiece = GetComponent<PlayPiece>();
-
             // Validate if patterns are right size.
             AttackPattern.Valid();
             MovementPattern.Valid();
 
+            m_Piece = GetComponent<PlayPiece>();
         }
 
-        private void Update()
+        /// <summary>
+        /// Place movement pattern on grid with piece coordinate.
+        /// </summary>
+        public void PlaceMovementPattern()
         {
-            m_PlayPiece.Grid?.ResetTileTypes();
+            PlaceMovementPattern(m_Piece.CurrentCoordinate);
+        }
 
-            if(ObjectSelect.GetSelectedObject() == transform.GetChild(0).gameObject)
+        /// <summary>
+        /// Place attack pattern on grid with piece coordinate.
+        /// </summary>
+        public void PlaceAttackPattern()
+        {
+            PlaceAttackPattern(m_Piece.CurrentCoordinate);
+        }
+
+        /// <summary>
+        /// Place movement pattern on grid with coordinate.
+        /// </summary>
+        public void PlaceMovementPattern(IntVector2 overrideCoordinate)
+        {
+            // Only update pattern if the piece is owned by the active player.
+            if (GameManager.ActivePlayer == m_Piece.GetOwnerIndex())
             {
-                m_PlayPiece.Grid?.AddTilePatternToTiles(MovementPattern, m_PlayPiece.CurrentCoordinate);
+                m_Piece.Grid?.ResetTileTypes();
+                m_Piece.Grid?.AddTilePatternToTiles(MovementPattern, overrideCoordinate);
             }
         }
 
+        /// <summary>
+        /// Place attack pattern on grid with coordinate.
+        /// </summary>
+        public void PlaceAttackPattern(IntVector2 overrideCoordinate)
+        {
+            // Only update pattern if the piece is owned by the active player.
+            if (GameManager.ActivePlayer == m_Piece.GetOwnerIndex())
+            {
+                m_Piece.Grid?.ResetTileTypes();
+                m_Piece.Grid?.AddTilePatternToTiles(AttackPattern, overrideCoordinate);
+            }
+        }
 
-        public TilePattern AttackPattern;
+        private PlayPiece m_Piece;
+
         public TilePattern MovementPattern;
-
-        private PlayPiece m_PlayPiece;
+        public TilePattern AttackPattern;
     }
 
 }

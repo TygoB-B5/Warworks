@@ -32,7 +32,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2866410464179374626
 MonoBehaviour:
@@ -47,7 +47,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Element: 2
-  OwnerPlayerIndex: 0
+  OwnerIndex: 0
+  ColliderSize: {x: 2, y: 2, z: 2}
+  ColliderCenter: {x: 0, y: 1, z: 0}
 --- !u!114 &224200490476351769
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -75,9 +77,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f2c7d1b5ab28c14c957505c68395910, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  AttackPattern:
+  MovementPattern:
     Size: 3
     TileTypesList: 000000000100000000000000010000000000000001000000000000000100000000000000
-  MovementPattern:
+  AttackPattern:
     Size: 5
     TileTypesList: 00000000000000000200000000000000000000000000000000000000020000000000000000000000020000000200000000000000020000000200000000000000000000000200000000000000000000000000000000000000020000000000000000000000

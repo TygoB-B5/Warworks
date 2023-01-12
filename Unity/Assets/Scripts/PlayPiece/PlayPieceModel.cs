@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 
@@ -39,7 +40,7 @@ namespace Piece
         /// <summary>
         /// Load playpiece model based on player owner index.
         /// </summary>
-        public void LoadModel(int ownerIndex)
+        public void LoadModel(PlayPiece piece, int ownerIndex)
         {
             // Delete model if exists.
             if(m_CurrentModel)
@@ -53,14 +54,11 @@ namespace Piece
                 Debug.LogError($"Models can not be loaded for Player Owner Index. Index: {ownerIndex}", this);
             }
 
-            // Get model gameObjectl
+            // Get model gameObject.
             GameObject model = ModelsForPlayerIndex[ownerIndex];
 
             // Spawn model gameObject.
             m_CurrentModel = Instantiate(model, transform);
-
-            // Add collider to model.
-            m_CurrentModel.AddComponent<BoxCollider>();
 
             // Set layermask to pawn layer.
             m_CurrentModel.layer = 3;

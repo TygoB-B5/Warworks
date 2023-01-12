@@ -1,4 +1,5 @@
 using Piece;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -35,6 +36,11 @@ namespace Grid
         /// The Grid the object is attached to.
         /// </summary>
         public MovementGrid Grid { get; set; }
+
+        /// <summary>
+        /// Returns a reference to this gameobject.
+        /// </summary>
+        public GameObject This { get; }
     }
 
     public class MovementGrid : MonoBehaviour
@@ -57,6 +63,10 @@ namespace Grid
             {
                 m_Tiles[i] = Instantiate(TilePrefab, GetPositionWithIndex(i), Quaternion.identity, transform);
                 m_Tiles[i].name = $"Tile{i}";
+                m_Tiles[i].Coordinate = GetCoordinateFromIndex(i);
+
+                m_Tiles[i].OnTileSelected += ((tile) => OnTileSelected(tile));
+                m_Tiles[i].OnTileHovered += ((tile) => OnTileHovered(tile));
             }
         }
 
@@ -84,7 +94,17 @@ namespace Grid
             if (!IsValidIndex(index))
                 return Vector3.zero;
 
-            return GetPositionWithCoordinate(new IntVector2(index % GridSize.x, index / GridSize.x));
+            return GetPositionWithCoordinate(GetCoordinateFromIndex(index));
+        }
+
+        /// <summary>
+        /// Returns the Grid coordinate based on index.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public IntVector2 GetCoordinateFromIndex(int index)
+        {
+            return new IntVector2(index % GridSize.x, index / GridSize.x);
         }
 
         /// <summary>
@@ -223,7 +243,7 @@ namespace Grid
         public bool IsValidCoordinate(IntVector2 coordinate)
         {
             // Check if coordinate fits inside of the grid size.
-            if (coordinate.x >= GridSize.x || coordinate.y > GridSize.y)
+            if (coordinate.x >= GridSize.x || coordinate.y >= GridSize.y)
             {
                 Debug.LogError($"Coordinate is higher than grid size. Coordinate: {coordinate}", this);
                 return false;
@@ -240,11 +260,11 @@ namespace Grid
         public void AddTilePatternToTiles(TilePattern pattern, IntVector2 center)
         {
             // Calculate begin and end values.
-            int xBegin = (int)Mathf.Round(Mathf.Clamp(center.x - (pattern.Size / 2), 0, GridSize.x));
-            int xEnd = (int)Mathf.Round(Mathf.Clamp(center.x + (pattern.Size / 2), 0, GridSize.x));
+            int xBegin = (int)Mathf.Round(center.x - (pattern.Size / 2));
+            int xEnd = (int)Mathf.Round(center.x + (pattern.Size / 2));
 
-            int yBegin = (int)Mathf.Round(Mathf.Clamp(center.y - (pattern.Size / 2), 0, GridSize.y));
-            int yEnd = (int)Mathf.Round(Mathf.Clamp(center.y + (pattern.Size / 2), 0, GridSize.y));
+            int yBegin = (int)Mathf.Round(center.y - (pattern.Size / 2));
+            int yEnd = (int)Mathf.Round(center.y + (pattern.Size / 2));
 
             // Itterate through every pattern value.
             int i = 0;
@@ -252,14 +272,110 @@ namespace Grid
             // Loop through every coordinate and update the tile based on the tiletypelist.
             for (int x = xBegin; x <= xEnd; x++)
             {
+                // Skip if index is out of range.
+                if (Mathf.Clamp(x, 0, GridSize.x) != x)
+                {
+                    i += pattern.Size;
+                    continue;
+                }
+
                 for (int y = yBegin; y <= yEnd; y++)
                 {
-                    SetTileTypeWithCoordinate(new IntVector2(x, y), pattern.TileTypesList[i]);
+                    // Skip if index is out of range.
+                    if (Mathf.Clamp(y, 0, GridSize.y) != y)
+                    {
+                        i++;
+                        continue;
+                    }
+
+                    SetTileTypeWithCoordinate(new IntVector2(y, x), pattern.TileTypesList[i]);
                     i++;
                 }
             }
         }
 
+        /// <summary>
+        ///  Returns if the tile on the pattern is not zero.
+        /// </summary>
+        /// <param name="pattern"></param>
+        /// <param name="center"></param>
+        /// <param name="coordinate"></param>
+        /// <returns></returns>
+        public bool IsCoordinateInsidePattern(TilePattern pattern, IntVector2 center, IntVector2 coordinate)
+        {
+            // Calculate begin and end values.
+            int xBegin = (int)Mathf.Round(center.x - (pattern.Size / 2));
+            int xEnd = (int)Mathf.Round(center.x + (pattern.Size / 2));
+
+            int yBegin = (int)Mathf.Round(center.y - (pattern.Size / 2));
+            int yEnd = (int)Mathf.Round(center.y + (pattern.Size / 2));
+
+            // Calculate index inside of the pattern.
+            int xIndex = (xEnd - xBegin) + (coordinate.x - xBegin);
+            int yIndex = (yEnd - yBegin) + (coordinate.y - yBegin);
+            int index = xIndex + yIndex;
+
+            // If the index is out of the array size return false.
+            if (Mathf.Clamp(index, 0, pattern.Size * pattern.Size) != index)
+            {
+                return false;
+            }
+
+            return pattern.TileTypesList[index] != 0;
+        }
+
+        /// <summary>
+        /// Returns an array of all movables inside of the pattern.
+        /// </summary>
+        /// <param name="pattern"></param>
+        /// <param name="center"></param>
+        /// <returns></returns>
+        public List<IGridMovable> GetMovablesInsidePattern(TilePattern pattern, IntVector2 center)
+        {
+            // Calculate begin and end values.
+            int xBegin = (int)Mathf.Round(center.x - (pattern.Size / 2));
+            int xEnd = (int)Mathf.Round(center.x + (pattern.Size / 2));
+
+            int yBegin = (int)Mathf.Round(center.y - (pattern.Size / 2));
+            int yEnd = (int)Mathf.Round(center.y + (pattern.Size / 2));
+
+            // Itterate through every pattern value.
+            int i = 0;
+
+            List<IGridMovable> movables = new List<IGridMovable>();
+
+            // Loop through every coordinate and update the tile based on the tiletypelist.
+            for (int x = xBegin; x <= xEnd; x++)
+            {
+                // Skip if index is out of range.
+                if (Mathf.Clamp(x, 0, GridSize.x) != x)
+                {
+                    i += pattern.Size;
+                    continue;
+                }
+
+                for (int y = yBegin; y <= yEnd; y++)
+                {
+                    // Skip if index is out of range.
+                    if (Mathf.Clamp(y, 0, GridSize.y) != y)
+                    {
+                        i++;
+                        continue;
+                    }
+
+                    // Add Imovable at coordinate if its not null.
+                    IGridMovable movable = GetGridMovableWithCoordinate(new IntVector2(x, y));
+                    if (movable != null &&  pattern.TileTypesList[i] != 0)
+                    {
+                        movables.Add(movable);
+                    }
+
+                    i++;
+                }
+            }
+
+            return movables;
+        }
 
         /// <summary>
         /// Returns if the index fits inside of the Grid.
@@ -302,6 +418,9 @@ namespace Grid
 
         [Header("Prefab that will be used as tiles.")]
         public GridTile TilePrefab;
+
+        public event Action<GridTile> OnTileSelected = delegate { };
+        public event Action<GridTile> OnTileHovered = delegate { };
 
         // Private variables.
 
