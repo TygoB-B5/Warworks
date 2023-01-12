@@ -2,6 +2,7 @@ using Grid;
 using Piece;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 namespace Gameplay
@@ -42,28 +43,25 @@ namespace Gameplay
 
             while (true)
             {
+                // Reset turn
+                m_SelectedPiece = null;
+                m_SelectedTile = null;
+
                 yield return new WaitForEndOfFrame();
 
-                // Select pawn.
-                m_SelectedPiece = null;
+                // Wait untill a tile and piece are selected.
                 yield return new WaitUntil(() => m_SelectedPiece);
-
-                // Select tile
-                m_SelectedTile = null;
                 yield return new WaitUntil(() => m_SelectedTile);
 
-                bool isValidMove = true;
 
                 // Try to move the object if it is movable. Else reset the tile list.
                 if(!m_Grid.SetGridMovablePositionWithCoordinate(m_SelectedTile.Coordinate, m_SelectedPiece))
                 {
-                    isValidMove = false;
                     m_Grid.ResetTileTypes();
                 }
-
-                if(isValidMove)
+                else
                 {
-                    ProcessAttack();
+                    Attack(m_SelectedPiece, m_SelectedTile);
                     SwitchTurns();
                 }
             }
@@ -74,9 +72,9 @@ namespace Gameplay
             m_ActivePlayer = m_ActivePlayer == 0 ? 1 : 0;
         }
 
-        private void ProcessAttack()
+        private void Attack(PlayPiece piece, GridTile tile)
         {
-            List<IGridMovable> movables = m_Grid.GetMovablesInsidePattern(m_SelectedPiece.GetComponent<PlayPiecePattern>().AttackPattern, m_SelectedTile.Coordinate);
+            List<IGridMovable> movables = m_Grid.GetMovablesInsidePattern(piece.GetComponent<PlayPiecePattern>().AttackPattern, tile.Coordinate);
 
             // Loop through all movables that are in the tile pattern.
             foreach (IGridMovable movable in movables)

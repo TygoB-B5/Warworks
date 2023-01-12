@@ -1,6 +1,6 @@
 using Grid;
-using System;
 using UnityEngine;
+using System;
 
 namespace Piece
 {   
@@ -31,8 +31,12 @@ namespace Piece
 
         public void OnRemove()
         {
-            // Delete this playpiece.
-            Destroy(gameObject);
+            // Yeet it off the map. >:3
+            Rigidbody rb = gameObject.AddComponent<Rigidbody>();
+            rb.AddForce(Vector3.up * 15 + new Vector3(UnityEngine.Random.Range(-1.0f, 1.0f), 0, UnityEngine.Random.Range(-1.0f, 1.0f)) * 15, ForceMode.Impulse);
+
+            // Destroy the object after a small delay so it doesn't clutter up the playfield if it lands on it.
+            Destroy(gameObject, 3.5f);
         }
 
         public void OnAttach()
